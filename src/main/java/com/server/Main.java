@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 
 import com.shared.ClientData;
+import com.shared.GameData;
 import com.shared.GameObject;
 
 /**
@@ -55,12 +57,15 @@ public class Main extends WebSocketServer {
     private static final String K_CLIENT_NAME = "clientName";
     private static final String K_CLIENTS_LIST = "clientsList";             
     private static final String K_OBJECTS_LIST = "objectsList"; 
+    private static final String K_GAME_DATA = "gameData";
 
     // Tipus de missatge nous i (alguns) heretats
     private static final String T_CLIENT_MOUSE_MOVING = "clientMouseMoving";  // client -> server
     private static final String T_CLIENT_OBJECT_MOVING = "clientObjectMoving";// client -> server
+    private static final String T_CLIENT_ADD_PIECE = "clientAddPiece";        // client -> server
     private static final String T_SERVER_DATA = "serverData";                 // server -> clients
     private static final String T_COUNTDOWN = "countdown";                    // server -> clients
+    private static final String T_CLIENT_ADD_PIECE_FINAL = "clientAddPieceFinal";
 
     /** Registre de clients i assignació de noms (pool integrat). */
     private final ClientRegistry clients;
@@ -72,6 +77,11 @@ public class Main extends WebSocketServer {
     private final Map<String, GameObject> gameObjects = new HashMap<>();
 
     private volatile boolean countdownRunning = false;
+
+
+    /** Estat del joc. */
+    private final GameData gameData = new GameData();
+
 
     /** Freqüència d’enviament de l’estat (frames per segon). */
     private static final int SEND_FPS = 30;
@@ -99,12 +109,12 @@ public class Main extends WebSocketServer {
      * Inicialitza els objectes seleccionables predefinits.
      */
     private void initializegameObjects() {
-        String objId = "O0";
-        GameObject obj0 = new GameObject(objId, 300, 50, 4, 1);
+        String objId = "R_00";
+        GameObject obj0 = new GameObject(objId, 300, 50, "R");
         gameObjects.put(objId, obj0);
 
-        objId = "O1";
-        GameObject obj1 = new GameObject(objId, 300, 100, 1, 3);
+        objId = "Y_00";
+        GameObject obj1 = new GameObject(objId, 300, 100,  "Y");
         gameObjects.put(objId, obj1);
     }
 
@@ -139,6 +149,7 @@ public class Main extends WebSocketServer {
                     sendCountdownToAll(i);
                     if (i > 0) Thread.sleep(750); // ritme del compte enrere
                 }
+                
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
             } finally {
@@ -176,6 +187,20 @@ public class Main extends WebSocketServer {
         }
     }
 
+
+    private void broadcastAnimation (JSONObject msg){
+
+        JSONObject rst = msg("serverAnimation")
+            .put(K_VALUE, msg);
+
+        for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
+            WebSocket conn = e.getKey();
+            String name = clients.nameBySocket(conn);
+            rst.put(K_CLIENT_NAME, name);
+            sendSafe(conn, rst.toString());
+        }
+    }
+
     private void broadcastStatus() {
 
         JSONArray arrClients = new JSONArray();
@@ -190,7 +215,8 @@ public class Main extends WebSocketServer {
 
         JSONObject rst = msg(T_SERVER_DATA)
                         .put(K_CLIENTS_LIST, arrClients)
-                        .put(K_OBJECTS_LIST, arrObjects);
+                        .put(K_OBJECTS_LIST, arrObjects)
+                        .put(K_GAME_DATA, gameData.toJSON());
 
         for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
             WebSocket conn = e.getKey();
@@ -214,7 +240,19 @@ public class Main extends WebSocketServer {
         String name = clients.add(conn);
         String color = getColorForName(name);
 
-        clientsData.put(name, new ClientData(name, color));
+        ClientData client= new ClientData(name, color);
+        
+        
+
+        if(gameData.getTurn().equals("")){
+            gameData.setTurn(name);
+            client.setRole("Y");
+            System.out.println(gameData.getTurn()+"Es el primero ");
+        }else{
+            client.setRole("R");
+        }
+
+        clientsData.put(name, client);
 
         System.out.println("WebSocket client connected: " + name + " (" + color + ")");
         sendCountdown();
@@ -249,7 +287,17 @@ public class Main extends WebSocketServer {
                 GameObject objData = GameObject.fromJSON(obj.getJSONObject(K_VALUE));
                 gameObjects.put(objData.id, objData);
             }
+            
+            case T_CLIENT_ADD_PIECE -> {
+                System.out.println(obj.get(K_VALUE));
+                JSONObject msg = obj.getJSONObject(K_VALUE);
+                broadcastAnimation(msg);
+            }
 
+            case T_CLIENT_ADD_PIECE_FINAL -> {
+                gameData.fromJSON(obj.getJSONObject(K_VALUE));
+                System.out.println("GameData updated from client: " + gameData.toString());
+            }
             default -> {
                 // Ignora altres tipus
             }

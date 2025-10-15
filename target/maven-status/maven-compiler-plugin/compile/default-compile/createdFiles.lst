@@ -4,9 +4,11 @@ com\client\Main.class
 com\client\CtrlConfig.class
 com\client\CtrlPlay.class
 com\client\CtrlWait.class
+com\shared\GameData$1.class
 com\shared\GameObject.class
 com\client\UtilsWS.class
 com\client\UtilsWS$1.class
+com\shared\GameData.class
 com\server\ClientRegistry.class
 com\client\UtilsViews.class
 com\shared\ClientData.class

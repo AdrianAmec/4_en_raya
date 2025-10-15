@@ -9,6 +9,7 @@ public class ClientData {
     public int mouseY;
     public int row;
     public int col;
+    public String role;
 
     public ClientData(String name, String color) {
         this.name = name;
@@ -17,6 +18,7 @@ public class ClientData {
         this.mouseY = -1;
         this.row = -1;
         this.col = -1;
+        role="";
     }
 
     public ClientData(String name, String color, int mouseX, int mouseY, int row, int col) {
@@ -26,6 +28,21 @@ public class ClientData {
         this.mouseY = mouseY;
         this.row = row;
         this.col = col;
+        role="";
+    }
+
+    public ClientData(String name, String color, int mouseX, int mouseY, int row, int col,String role) {
+        this.name = name;
+        this.color = color;
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
+        this.row = row;
+        this.col = col;
+        this.role=role;
+    }
+
+    public void setRole(String role){
+        this.role=role;
     }
 
     @Override
@@ -42,6 +59,7 @@ public class ClientData {
         obj.put("mouseY", mouseY);
         obj.put("row", row);
         obj.put("col", col);
+        obj.put("role", role);
         return obj;
     }
 
@@ -55,6 +73,10 @@ public class ClientData {
         cd.mouseY = obj.optInt("mouseY", -1);
         cd.row = obj.optInt("row", -1);
         cd.col = obj.optInt("col", -1);
+        cd.role = obj.optString("role");
         return cd;
+    }
+    public String getNombre(){
+        return name;
     }
 }

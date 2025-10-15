@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.shared.ClientData;
+import com.shared.GameData;
 import com.shared.GameObject;
 
 import javafx.application.Application;
@@ -25,6 +26,7 @@ public class Main extends Application {
     public static String clientName = "";
     public static List<ClientData> clients;
     public static List<GameObject> objects;
+    public static GameData gameData= new GameData();
 
     public static CtrlConfig ctrlConfig;
     public static CtrlWait ctrlWait;
@@ -132,6 +134,9 @@ public class Main extends Application {
                 }
                 objects = newObjects;
 
+                gameData.fromJSON(msgObj.getJSONObject("gameData"));
+                
+
                 if (clients.size() == 1) {
 
                     ctrlWait.txtPlayer0.setText(clients.get(0).name);
@@ -141,12 +146,14 @@ public class Main extends Application {
                     ctrlWait.txtPlayer0.setText(clients.get(0).name);
                     ctrlWait.txtPlayer1.setText(clients.get(1).name);
                     ctrlPlay.title.setText(clients.get(0).name + " vs " + clients.get(1).name);
+                    
                 }
                 
                 if (UtilsViews.getActiveView().equals("ViewConfig")) {
                     UtilsViews.setViewAnimating("ViewWait");
                 }
 
+                
                 break;
             
             case "countdown":
@@ -155,11 +162,28 @@ public class Main extends Application {
                 if (value == 0) {
                     UtilsViews.setViewAnimating("ViewPlay");
                     txt = "GO";
+                    
                 }
                 ctrlWait.txtTitle.setText(txt);
                 break;
+
+            case "serverAnimation":
+                
+                JSONObject ani = msgObj.getJSONObject("value");
+                int x = ani.getInt("col");
+                int y = ani.getInt("row");
+                String piece = ani.getString("piece");
+                 
+
+                ctrlPlay.newDummyObject(x,piece);
+                ctrlPlay.startAnimation(x,y);
+                
+
+                break;
         }
     }
+
+
 
     private static void wsError(String response) {
         String connectionRefused = "Connection refused";
