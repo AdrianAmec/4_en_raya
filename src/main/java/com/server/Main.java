@@ -21,7 +21,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-
 import com.shared.ClientData;
 import com.shared.GameData;
 import com.shared.GameObject;
@@ -72,6 +71,8 @@ public class Main extends WebSocketServer {
 
     /** Mapa d’estat per client (source of truth del servidor). Clau = name/id. */
     private final Map<String, ClientData> clientsData = new HashMap<>();
+
+
 
     /** Mapa d'objectes seleccionables compartits. */
     private final Map<String, GameObject> gameObjects = new HashMap<>();
@@ -259,6 +260,9 @@ public class Main extends WebSocketServer {
     }
 
     /** Elimina el client del registre i envia l’STATE complet. */
+
+    
+
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         String name = clients.remove(conn);
@@ -296,6 +300,12 @@ public class Main extends WebSocketServer {
 
             case T_CLIENT_ADD_PIECE_FINAL -> {
                 gameData.fromJSON(obj.getJSONObject(K_VALUE));
+                int row = gameData.getLastMove().getInt("row");
+                int col = gameData.getLastMove().getInt("col");
+                if(checkWin(row, col,gameData.getBoard())){
+                    gameData.setWinner(gameData.getTurn());
+                }
+                nextTurn();
                 System.out.println("GameData updated from client: " + gameData.toString());
             }
             default -> {
@@ -380,4 +390,95 @@ public class Main extends WebSocketServer {
         System.out.println("Server running on port " + DEFAULT_PORT + ". Press Ctrl+C to stop it.");
         awaitForever();
     }
+
+        /**
+     * Verifica si hay 4 en raya alrededor de la celda (r, c) para el jugador actual.
+     * @param r La fila (row) de la última pieza jugada.
+     * @param c La columna (column) de la última pieza jugada.
+     * @return true si se encuentra un 4 en raya, false en caso contrario.
+     */
+    public boolean checkWin(int r, int c, List<List<String>> board) {
+        
+        String player = board.get(r).get(c); // Pieza a buscar
+        
+        if (player.trim().isEmpty()) {
+            return false; // Nunca debe pasar si llamas esto después de un movimiento
+        }
+        
+        // Definición de las 8 direcciones posibles (dx, dy)
+        // Direcciones: Horizontal (izq/der), Vertical (arriba/abajo), Diagonal (\ y /)
+        int[][] directions = {
+            {0, 1},   // Horizontal
+            {1, 0},   // Vertical
+            {1, 1},   // Diagonal principal (\)
+            {1, -1}   // Diagonal secundaria (/)
+        };
+        
+        // Solo necesitamos verificar 4 direcciones, ya que la dirección opuesta se cubre
+        // al multiplicar por -1 (ej: derecha es lo opuesto a izquierda)
+
+        for (int[] dir : directions) {
+            int dr = dir[0];
+            int dc = dir[1];
+            
+            // Contamos la pieza central como 1
+            int count = 1;
+
+            // 1. Contar en la dirección POSITIVA (ej: hacia la derecha, hacia abajo)
+            count += countDirection(r, c, dr, dc, player, board);
+
+            // 2. Contar en la dirección OPUESTA/NEGATIVA (ej: hacia la izquierda, hacia arriba)
+            // Usamos -dr y -dc para la dirección opuesta
+            count += countDirection(r, c, -dr, -dc, player, board);
+
+            // Si la cuenta total (incluyendo la pieza central) es 4 o más, ganamos.
+            if (count >= 4) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Función auxiliar para contar piezas consecutivas en una sola dirección.
+     */
+    private int countDirection(int startR, int startC, int dr, int dc, String player, List<List<String>> board) {
+        int rows = board.size();
+        int cols = board.get(0).size();
+        int count = 0;
+        
+        // Moverse un paso en la dirección dada y contar
+        for (int i = 1; i <= 3; i++) { // Solo necesitamos contar hasta 3 veces más
+            int currentRow = startR + i * dr;
+            int currentCol = startC + i * dc;
+
+            // Verificar límites del tablero
+            if (currentRow < 0 || currentRow >= rows || currentCol < 0 || currentCol >= cols) {
+                break; 
+            }
+
+            // Verificar si la celda coincide con la pieza del jugador
+            // Usamos .trim().equals() para ignorar los espacios si es necesario
+            if (board.get(currentRow).get(currentCol).trim().equals(player.trim())) {
+                count++;
+            } else {
+                break; // Se rompe la secuencia
+            }
+        }
+        return count;
+    }
+
+    public void nextTurn(){
+        java.util.Iterator<String> cl = clientsData.keySet().iterator();
+        String c1 = cl.next();
+        String c2 = cl.next();
+        if(c1.equals(gameData.getTurn())){
+            gameData.setTurn(c2);
+            return;
+        }
+        gameData.setTurn(c1);
+    }
+
+    
 }

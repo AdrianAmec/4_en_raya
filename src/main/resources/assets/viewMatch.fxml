@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="anchor" minHeight="500.0" minWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.CtrlMatchmaking">
+   <children>
+      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <Label fx:id="txtTitle" alignment="CENTER" prefHeight="17.0" prefWidth="600.0" text="Lobby" VBox.vgrow="NEVER">
+               <font>
+                  <Font size="32.0" />
+               </font>
+               <VBox.margin>
+                  <Insets top="100.0" />
+               </VBox.margin>
+            </Label>
+            <TableView fx:id="table" prefHeight="253.0" prefWidth="600.0">
+              <columns>
+                <TableColumn fx:id="jugadorCol" prefWidth="482.0" text="Jugador">
+                  <cellValueFactory>
+                     <PropertyValueFactory property="nombre"/>
+                  </cellValueFactory>
+               </TableColumn>
+                <TableColumn fx:id="acctionCol" minWidth="0.0" prefWidth="117.0" text="Accion" />
+              </columns>
+            </TableView>
+            <Pane prefHeight="200.0" prefWidth="200.0" />
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

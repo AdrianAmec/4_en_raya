@@ -153,7 +153,11 @@ public class Main extends Application {
                     UtilsViews.setViewAnimating("ViewWait");
                 }
 
-                
+                if(clientName.equals(gameData.getTurn())){
+                    ctrlPlay.turno.setText("Tu turno");
+                }else{
+                    ctrlPlay.turno.setText("Turno de "+gameData.getTurn());
+                }
                 break;
             
             case "countdown":

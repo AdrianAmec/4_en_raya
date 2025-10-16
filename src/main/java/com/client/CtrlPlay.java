@@ -27,7 +27,7 @@ import com.shared.GameObject;
 public class CtrlPlay implements Initializable {
 
     @FXML
-    public javafx.scene.control.Label title;
+    public javafx.scene.control.Label title,turno;
 
     @FXML
     private Canvas canvas;
@@ -518,7 +518,7 @@ public class CtrlPlay implements Initializable {
             final int[] actY = {dummyAnimacion.y};
 
             while (actY[0] < FINALY) {
-                System.out.println(dummyAnimacion);
+                // System.out.println(dummyAnimacion);
                 actY[0] += VEL;
 
                 if (actY[0] > FINALY){
@@ -538,18 +538,14 @@ public class CtrlPlay implements Initializable {
                 }
                 
             }
-            System.out.println("Animacion acabada!");
+            //System.out.println("Animacion acabada");
             if(Main.gameData.getTurn().equals(Main.clientName)){
                 GameData newGameData = new GameData(Main.gameData.toJSON());
                 newGameData.setPiece(xx, yy, dummyAnimacion.role);
-                newGameData.setTurn(getNextClient());
                 newGameData.setLastMove(new JSONObject()
                 .put("row", xx)
                 .put("col", yy)
                 );
-                if(checkWin(xx, yy,newGameData.getBoard())){
-                    newGameData.setWinner(Main.clientName);
-                }
                 JSONObject msg = new JSONObject();
                     msg.put("type", "clientAddPieceFinal");
                     msg.put("value", newGameData.toJSON());
@@ -564,91 +560,10 @@ public class CtrlPlay implements Initializable {
         animacion.submit(runAnimacion);
     }
 
-    public String getNextClient(){
-        if(Main.clients.getFirst().name.equals(Main.clientName)){
-            return Main.clients.getLast().name;
-        }
-        return Main.clients.getFirst().name;
-    }
+    
 
 
 
-    /**
-     * Verifica si hay 4 en raya alrededor de la celda (r, c) para el jugador actual.
-     * @param r La fila (row) de la última pieza jugada.
-     * @param c La columna (column) de la última pieza jugada.
-     * @return true si se encuentra un 4 en raya, false en caso contrario.
-     */
-    public boolean checkWin(int r, int c, List<List<String>> board) {
-        
-        String player = board.get(r).get(c); // Pieza a buscar
-        
-        if (player.trim().isEmpty()) {
-            return false; // Nunca debe pasar si llamas esto después de un movimiento
-        }
-        
-        // Definición de las 8 direcciones posibles (dx, dy)
-        // Direcciones: Horizontal (izq/der), Vertical (arriba/abajo), Diagonal (\ y /)
-        int[][] directions = {
-            {0, 1},   // Horizontal
-            {1, 0},   // Vertical
-            {1, 1},   // Diagonal principal (\)
-            {1, -1}   // Diagonal secundaria (/)
-        };
-        
-        // Solo necesitamos verificar 4 direcciones, ya que la dirección opuesta se cubre
-        // al multiplicar por -1 (ej: derecha es lo opuesto a izquierda)
 
-        for (int[] dir : directions) {
-            int dr = dir[0];
-            int dc = dir[1];
-            
-            // Contamos la pieza central como 1
-            int count = 1;
-
-            // 1. Contar en la dirección POSITIVA (ej: hacia la derecha, hacia abajo)
-            count += countDirection(r, c, dr, dc, player, board);
-
-            // 2. Contar en la dirección OPUESTA/NEGATIVA (ej: hacia la izquierda, hacia arriba)
-            // Usamos -dr y -dc para la dirección opuesta
-            count += countDirection(r, c, -dr, -dc, player, board);
-
-            // Si la cuenta total (incluyendo la pieza central) es 4 o más, ganamos.
-            if (count >= 4) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Función auxiliar para contar piezas consecutivas en una sola dirección.
-     */
-    private int countDirection(int startR, int startC, int dr, int dc, String player, List<List<String>> board) {
-        int rows = board.size();
-        int cols = board.get(0).size();
-        int count = 0;
-        
-        // Moverse un paso en la dirección dada y contar
-        for (int i = 1; i <= 3; i++) { // Solo necesitamos contar hasta 3 veces más
-            int currentRow = startR + i * dr;
-            int currentCol = startC + i * dc;
-
-            // Verificar límites del tablero
-            if (currentRow < 0 || currentRow >= rows || currentCol < 0 || currentCol >= cols) {
-                break; 
-            }
-
-            // Verificar si la celda coincide con la pieza del jugador
-            // Usamos .trim().equals() para ignorar los espacios si es necesario
-            if (board.get(currentRow).get(currentCol).trim().equals(player.trim())) {
-                count++;
-            } else {
-                break; // Se rompe la secuencia
-            }
-        }
-        return count;
-    }
 }
 
