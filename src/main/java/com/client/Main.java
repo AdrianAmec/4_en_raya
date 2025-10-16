@@ -1,5 +1,6 @@
 package com.client;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class Main extends Application {
     public static CtrlConfig ctrlConfig;
     public static CtrlWait ctrlWait;
     public static CtrlPlay ctrlPlay;
+    public static CtrlMatch ctrlMatch;
 
     public static void main(String[] args) {
 
@@ -48,11 +50,17 @@ public class Main extends Application {
         UtilsViews.addView(getClass(), "ViewConfig", "/assets/viewConfig.fxml"); 
         UtilsViews.addView(getClass(), "ViewWait", "/assets/viewWait.fxml");
         UtilsViews.addView(getClass(), "ViewPlay", "/assets/viewPlay.fxml");
+        System.out.println("test11");
+
+        UtilsViews.addView(getClass(), "ViewMatch", "/assets/viewMatch.fxml");
+        System.out.println("test22");
 
         ctrlConfig = (CtrlConfig) UtilsViews.getController("ViewConfig");
         ctrlWait = (CtrlWait) UtilsViews.getController("ViewWait");
         ctrlPlay = (CtrlPlay) UtilsViews.getController("ViewPlay");
-
+        System.out.println("test1");
+        ctrlMatch = (CtrlMatch) UtilsViews.getController("ViewMatch");
+        System.out.println("test2");
         Scene scene = new Scene(UtilsViews.parentContainer);
         
         stage.setScene(scene);
@@ -149,8 +157,10 @@ public class Main extends Application {
                     
                 }
                 
-                if (UtilsViews.getActiveView().equals("ViewConfig")) {
-                    UtilsViews.setViewAnimating("ViewWait");
+                if(gameData.getStatus().equals("win")){
+                    ctrlPlay.turno.setText("");
+                    ctrlPlay.title.setText( gameData.getWinner()+" gano la partida!");
+                    break;
                 }
 
                 if(clientName.equals(gameData.getTurn())){
@@ -158,6 +168,8 @@ public class Main extends Application {
                 }else{
                     ctrlPlay.turno.setText("Turno de "+gameData.getTurn());
                 }
+
+                
                 break;
             
             case "countdown":
@@ -183,6 +195,29 @@ public class Main extends Application {
                 ctrlPlay.startAnimation(x,y);
                 
 
+                break;
+
+            case "serverClientsMatch":
+                System.out.println("test3");
+                ctrlMatch.setItemsFromJSONArray(msgObj.getJSONArray("value"));
+                //ctrlMatch.setClient(msgObj.getString("clientName"));
+
+                break;
+
+            case "serverMatchAdd":
+                Main.clientName=msgObj.getString("clientName");
+                UtilsViews.setViewAnimating("ViewMatch");
+                break;
+
+            case "serverNewInvitation":
+                String from = msgObj.getString("from");
+                String to = msgObj.getString("to");
+                System.out.println("invitacion recivida . soy "+to+"  ---  " + " de -- "+from);
+                ctrlMatch.addNewInvitacion(from, to);
+                break;
+
+            case "startGame":
+                UtilsViews.setView("ViewWait");
                 break;
         }
     }

@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -62,9 +63,13 @@ public class Main extends WebSocketServer {
     private static final String T_CLIENT_MOUSE_MOVING = "clientMouseMoving";  // client -> server
     private static final String T_CLIENT_OBJECT_MOVING = "clientObjectMoving";// client -> server
     private static final String T_CLIENT_ADD_PIECE = "clientAddPiece";        // client -> server
+      private static final String T_CLIENT_ADD_PIECE_FINAL = "clientAddPieceFinal";
+    private static final String T_CLIENT_SENT_INVITATION = "clientSendInvitation";
+    private static final String T_CLIENT_ACCEPT_INVITATION= "clientAcceptInvitation";
     private static final String T_SERVER_DATA = "serverData";                 // server -> clients
     private static final String T_COUNTDOWN = "countdown";                    // server -> clients
-    private static final String T_CLIENT_ADD_PIECE_FINAL = "clientAddPieceFinal";
+    private static final String T_SERVER_START_GAME = "startGame";
+  
 
     /** Registre de clients i assignació de noms (pool integrat). */
     private final ClientRegistry clients;
@@ -135,15 +140,14 @@ public class Main extends WebSocketServer {
     private void sendCountdown() {
         synchronized (this) {
             if (countdownRunning) return;
-            if (clients.snapshot().size() != REQUIRED_CLIENTS) return;
             countdownRunning = true;
         }
 
         new Thread(() -> {
             try {
-                for (int i = 5; i >= 0; i--) {
+                for (int i = 3; i >= 0; i--) {
                     // Si durant el compte enrere ja no hi ha els clients requerits, cancel·la
-                    if (clients.snapshot().size() < REQUIRED_CLIENTS) {
+                    if (clientsData.size() < REQUIRED_CLIENTS) {
                         break;
                     }
 
@@ -188,15 +192,21 @@ public class Main extends WebSocketServer {
         }
     }
 
+    //envia los datos de los jugadores disponibles y muestra tu nombre
+    private void sendClientsMatch(){
+        JSONObject rst = msg("serverClientsMatch")
+        .put(K_VALUE, clients.currentNames());
+        broadcastExcept(null, rst.toString());
+    }
 
     private void broadcastAnimation (JSONObject msg){
 
         JSONObject rst = msg("serverAnimation")
             .put(K_VALUE, msg);
 
-        for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
-            WebSocket conn = e.getKey();
-            String name = clients.nameBySocket(conn);
+        for (Map.Entry<String, ClientData> e : clientsData.entrySet()) {
+            String name = e.getKey();
+            WebSocket conn = clients.socketByName(name);
             rst.put(K_CLIENT_NAME, name);
             sendSafe(conn, rst.toString());
         }
@@ -219,9 +229,10 @@ public class Main extends WebSocketServer {
                         .put(K_OBJECTS_LIST, arrObjects)
                         .put(K_GAME_DATA, gameData.toJSON());
 
-        for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
-            WebSocket conn = e.getKey();
-            String name = clients.nameBySocket(conn);
+        for (Map.Entry<String, ClientData> e : clientsData.entrySet()) {
+            
+            String name = e.getKey();
+            WebSocket conn = clients.socketByName(name);
             rst.put(K_CLIENT_NAME, name);
             sendSafe(conn, rst.toString());
         }
@@ -230,9 +241,18 @@ public class Main extends WebSocketServer {
     /** Envia a tots els clients el compte enrere. */
     private void sendCountdownToAll(int n) {
         JSONObject rst = msg(T_COUNTDOWN).put(K_VALUE, n);
-        broadcastExcept(null, rst.toString());
+
+        sendDataToCurrentPlayers(rst.toString());
     }
 
+
+    private void sendDataToCurrentPlayers(String msg){
+        for (Map.Entry<String, ClientData> entry : clientsData.entrySet()) {
+            String name = entry.getKey();
+            WebSocket ws = clients.socketByName(name);
+            sendSafe(ws, msg);
+        }
+    }
     // ----------------- WebSocketServer overrides -----------------
 
     /** Assigna un nom i color al client i envia l’STATE complet. */
@@ -241,33 +261,56 @@ public class Main extends WebSocketServer {
         String name = clients.add(conn);
         String color = getColorForName(name);
 
-        ClientData client= new ClientData(name, color);
+        //ClientData client= new ClientData(name, color);
+        // if(gameData.getTurn().equals("")){
+        //     gameData.setTurn(name);
+        //     client.setRole("Y");
+        //     System.out.println(gameData.getTurn()+"Es el primero ");
+        // }else{
+        //     client.setRole("R");
+        // }
+
+        // actualiza los jugadores a todos
+
+        //lo envia al view Matchmaking
+        JSONObject msg = msg("serverMatchAdd")
+        .put(K_CLIENT_NAME, name);
+        sendSafe(conn, msg.toString());
+
         
-        
-
-        if(gameData.getTurn().equals("")){
-            gameData.setTurn(name);
-            client.setRole("Y");
-            System.out.println(gameData.getTurn()+"Es el primero ");
-        }else{
-            client.setRole("R");
-        }
-
-        clientsData.put(name, client);
-
         System.out.println("WebSocket client connected: " + name + " (" + color + ")");
-        sendCountdown();
+        
+        sendClientsMatch();
+        //sendCountdown();
     }
 
     /** Elimina el client del registre i envia l’STATE complet. */
 
-    
+    public void endGameDC(String nameDc){
+        String w="";
+        for (Map.Entry<String,ClientData> client : clientsData.entrySet()) {
+            w = client.getKey();
+            if(!w.equals(nameDc)){break;}
+        }
+        gameData.setWinner(w);
+        gameData.setStatus("win");
+
+        //broadcastStatus();
+    }
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         String name = clients.remove(conn);
-        clientsData.remove(name);
-        System.out.println("WebSocket client disconnected: " + name);
+        if(clientsData.containsKey(name)){
+            //si estaba jugando, gana automaticamente el que sigue jugando
+            if(gameData.getStatus().equals("playing")){
+                endGameDC(name);
+            }
+            
+            clientsData.remove(name);
+        }
+        //actualiza la lista de clientes
+        sendClientsMatch();
     }
 
     /** Processa els missatges rebuts. */
@@ -304,9 +347,51 @@ public class Main extends WebSocketServer {
                 int col = gameData.getLastMove().getInt("col");
                 if(checkWin(row, col,gameData.getBoard())){
                     gameData.setWinner(gameData.getTurn());
+                    gameData.setStatus("win");
                 }
                 nextTurn();
                 System.out.println("GameData updated from client: " + gameData.toString());
+            }
+
+            case T_CLIENT_SENT_INVITATION ->{
+                String from =obj.getString("from");
+                String to = obj.getString("to");
+                JSONObject msg = msg("serverNewInvitation")
+                .put("from", from)
+                .put("to", to);
+
+                WebSocket toWSocket = clients.socketByName(to);
+                System.out.println("enviando invitacion a "+to);
+                sendSafe(toWSocket, msg.toString());
+
+            }
+            case T_CLIENT_ACCEPT_INVITATION->{
+                String from = obj.getString("from");
+                String to = obj.getString("to");
+                List<String> data = Arrays.asList(from, to);
+                System.out.println(data.toString());
+                clientsData.clear();
+                if(!gameData.getStatus().equals("playing")){
+                    for (int i = 0; i < data.size(); i++) {
+                        String color = getColorForName(data.get(i));
+                        ClientData player = new ClientData(data.get(i), color, (i == 0 ? "Y" : "R"));
+                        clientsData.put(data.get(i), player);
+                    }
+                    gameData.newGame();
+                    gameData.setStatus("playing");
+                    Random random = new Random();
+                    gameData.setTurn(data.get(random.nextInt(data.size())));
+                    
+                    JSONObject msg = msg(T_SERVER_START_GAME);
+                    for (String name : data) {
+                        WebSocket ws = clients.socketByName(name);
+                        sendSafe(ws, msg.toString());
+                        
+                    }
+                    //broadcastStatus();
+                    sendCountdown();
+                }
+
             }
             default -> {
                 // Ignora altres tipus
@@ -363,9 +448,13 @@ public class Main extends WebSocketServer {
         ticker.scheduleAtFixedRate(() -> {
             try {
                 // Opcional: si no hi ha clients, evita enviar
-                if (!clients.snapshot().isEmpty()) {
+                if (!clients.currentNames().isEmpty()) {
+                    System.out.println("testticket");
+                    //sendClientsMatch();
                     broadcastStatus();
+
                 }
+                
             } catch (Exception e) {
                 e.printStackTrace();
             }

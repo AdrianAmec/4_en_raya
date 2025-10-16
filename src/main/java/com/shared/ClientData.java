@@ -21,6 +21,16 @@ public class ClientData {
         role="";
     }
 
+    public ClientData(String name, String color,String role) {
+        this.name = name;
+        this.color = color;
+        this.mouseX = -1;
+        this.mouseY = -1;
+        this.row = -1;
+        this.col = -1;
+        this.role=role;
+    }
+
     public ClientData(String name, String color, int mouseX, int mouseY, int row, int col) {
         this.name = name;
         this.color = color;

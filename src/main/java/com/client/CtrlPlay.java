@@ -127,7 +127,7 @@ public class CtrlPlay implements Initializable {
 
     private void onMousePressed(MouseEvent event) {
         
-
+        
 
         double mouseX = event.getX();
         double mouseY = event.getY();
@@ -148,6 +148,10 @@ public class CtrlPlay implements Initializable {
     }
 
     private void onMouseDragged(MouseEvent event) {
+        if (!isPlaying()){
+            setOnMouseMoved(event);
+            return;
+        }
         if (mouseDragging) {
             double objX = event.getX() - mouseOffsetX;
             double objY = event.getY() - mouseOffsetY;
@@ -166,6 +170,7 @@ public class CtrlPlay implements Initializable {
     }
 
     private void onMouseReleased(MouseEvent event) {
+        if (!isPlaying()){return;}
         if (selectedObject != null) {
             System.out.println("nameClient = "+Main.clientName+"  Turno de = "+Main.gameData.getTurn() );
             
@@ -315,7 +320,10 @@ public class CtrlPlay implements Initializable {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
 
-        drawShadowCircle();
+        if(isPlaying()){
+            drawShadowCircle();
+        }
+        
         //Draw colored 'over' cells
         // for (ClientData clientData : Main.clients) {
         //     // Comprovar si està dins dels límits de la graella
@@ -490,6 +498,13 @@ public class CtrlPlay implements Initializable {
                 gc.fillOval(x, y, size, size);
             }
         }
+    }
+
+    public boolean isPlaying(){
+        if(Main.gameData.getStatus().equals("playing")){
+            return true;
+        }
+        return false;
     }
 
     public void newDummyObject(int x,String role){

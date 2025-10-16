@@ -16,6 +16,28 @@ public class GameData {
     private JSONObject lastMove;
     private String winner;
 
+
+
+    public void newGame(){
+            this.status = "";
+        this.turn = "";
+        this.lastMove = new JSONObject()
+                        .put("lastMove",new JSONObject()
+                            .put("row",-1)
+                            .put("col",-1)
+                        );
+        
+        this.board = new ArrayList<List<String>>() {{
+            add(new ArrayList<>(Arrays.asList(" "," "," "," "," "," "," ")));
+            add(new ArrayList<>(Arrays.asList(" "," "," "," "," "," "," ")));
+            add(new ArrayList<>(Arrays.asList(" "," "," "," "," "," "," ")));
+            add(new ArrayList<>(Arrays.asList(" "," "," "," "," "," "," ")));
+            add(new ArrayList<>(Arrays.asList(" "," "," "," "," "," "," ")));
+            add(new ArrayList<>(Arrays.asList(" "," "," "," "," "," "," ")));
+            }};
+        this.winner = "";
+
+    }
     public GameData() {
         this.status = "";
         this.turn = "";
