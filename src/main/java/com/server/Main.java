@@ -192,13 +192,15 @@ public class Main extends WebSocketServer {
         }
     }
 
-    //envia los datos de los jugadores disponibles y muestra tu nombre
+    //envia los nombres de los jugadores conectados
     private void sendClientsMatch(){
         JSONObject rst = msg("serverClientsMatch")
         .put(K_VALUE, clients.currentNames());
         broadcastExcept(null, rst.toString());
     }
 
+
+    //envia la orden de empezar la animacion de jugada en los clientes
     private void broadcastAnimation (JSONObject msg){
 
         JSONObject rst = msg("serverAnimation")
@@ -284,8 +286,8 @@ public class Main extends WebSocketServer {
         //sendCountdown();
     }
 
-    /** Elimina el client del registre i envia l’STATE complet. */
-
+    
+ // Si el que desconecto estaba jugando y el estado dela partida estaba en "playing", hace ganador al jugador restante
     public void endGameDC(String nameDc){
         String w="";
         for (Map.Entry<String,ClientData> client : clientsData.entrySet()) {
@@ -297,7 +299,7 @@ public class Main extends WebSocketServer {
 
         //broadcastStatus();
     }
-
+    /** Elimina el client del registre i envia l’STATE complet. */
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         String name = clients.remove(conn);
@@ -369,22 +371,35 @@ public class Main extends WebSocketServer {
 
             }
             case T_CLIENT_ACCEPT_INVITATION->{
+
                 String from = obj.getString("from");
                 String to = obj.getString("to");
-                List<String> data = Arrays.asList(from, to);
+
+                //array para seleccionar jugadores
+                List<String> data = Arrays.asList(to, from);
                 System.out.println(data.toString());
                 clientsData.clear();
+
+                //si ya hay una partida en curso no hace nada
                 if(!gameData.getStatus().equals("playing")){
                     for (int i = 0; i < data.size(); i++) {
                         String color = getColorForName(data.get(i));
                         ClientData player = new ClientData(data.get(i), color, (i == 0 ? "Y" : "R"));
+                        //agrega a los jugadores a clientData
                         clientsData.put(data.get(i), player);
                     }
+
+                    //reiniciamos gameData
                     gameData.newGame();
+                    //cambiamos que estan jugand
                     gameData.setStatus("playing");
+
+                    //los turnos se asignan random
                     Random random = new Random();
                     gameData.setTurn(data.get(random.nextInt(data.size())));
                     
+
+                    //enviamos la señal a los jugadores que su partida empezo
                     JSONObject msg = msg(T_SERVER_START_GAME);
                     for (String name : data) {
                         WebSocket ws = clients.socketByName(name);

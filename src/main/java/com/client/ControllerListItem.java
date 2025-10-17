@@ -34,7 +34,7 @@ public class ControllerListItem{
 
 
     public void setDatos(String from, String to){
-        this.title.setText(from +" te invito a jugat ");
+        this.title.setText(from +" te invito a jugar ");
         this.from=from;
         this.to=to;
     }

@@ -70,6 +70,8 @@ public class CtrlMatch implements Initializable{
                     private final Button btn = new Button("Invitar");
                     {
                         btn.setOnAction(event -> {
+                            btn.setText("enviado...");
+                            btn.setDisable(true);
                             ItemTabla data = getTableView().getItems().get(getIndex());
 
                             JSONObject msg = new JSONObject()
@@ -77,7 +79,14 @@ public class CtrlMatch implements Initializable{
                             .put("from",Main.clientName)
                             .put("to",data.getNombre());
                             Main.wsClient.safeSend(msg.toString());
-                            
+
+
+                            //enviamos al cliente a esperar al rival
+                            UtilsViews.setViewAnimating("ViewWait");
+                            Main.ctrlWait.txtTitle.setText("Esperando Oponente...");
+                            Main.ctrlWait.txtPlayer0.setText(Main.clientName);
+
+
 
                             System.out.println("invitacion a " + data.getNombre());
                         });
@@ -113,6 +122,7 @@ public class CtrlMatch implements Initializable{
             datosTabla.add(new ItemTabla(player));
     }
 
+
     public void setItemsFromJSONArray(JSONArray array){
         datosTabla.clear();
         for (int i = 0; i < array.length(); i++) {
@@ -127,9 +137,7 @@ public class CtrlMatch implements Initializable{
                 datosTabla.remove(i);
                 return;
             }
-            
         }
-
     }
     
     public void addNewInvitacion(String from,String to){
