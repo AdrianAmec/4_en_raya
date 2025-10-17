@@ -162,6 +162,11 @@ public class Main extends Application {
                     ctrlPlay.title.setText( gameData.getWinner()+" gano la partida!");
                     break;
                 }
+                if(gameData.getStatus().equals("draw")){
+                    ctrlPlay.turno.setText("");
+                    ctrlPlay.title.setText("draw!");
+                    break;
+                }
 
                 if(clientName.equals(gameData.getTurn())){
                     ctrlPlay.turno.setText("Tu turno");

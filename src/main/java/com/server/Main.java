@@ -349,6 +349,9 @@ public class Main extends WebSocketServer {
                     gameData.setWinner(gameData.getTurn());
                     gameData.setStatus("win");
                 }
+                if(checkDraw()){
+                    gameData.setStatus("draw");
+                }
                 nextTurn();
                 System.out.println("GameData updated from client: " + gameData.toString());
             }
@@ -478,6 +481,19 @@ public class Main extends WebSocketServer {
 
         System.out.println("Server running on port " + DEFAULT_PORT + ". Press Ctrl+C to stop it.");
         awaitForever();
+    }
+
+    public boolean checkDraw(){
+        List<List<String>> board = gameData.getBoard();
+
+        for (List<String> row : board) {
+            for (String cell : row) {
+                if (cell.equals(" ")) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
         /**
