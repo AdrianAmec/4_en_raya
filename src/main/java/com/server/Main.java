@@ -396,6 +396,29 @@ public class Main extends WebSocketServer {
                 }
 
             }
+
+
+            // case "clientPlay"->{
+            //     int row = obj.getInt("row");
+            //     int col = obj.getInt("col");
+            //     String piece = obj.getString("piece");
+            //     gameData.setLastMove(new JSONObject()
+            //     .put("row", row)
+            //     .put("col", col));
+
+            //     gameData.setPiece(row, col, piece);
+
+            //     if(checkWin(row, col,gameData.getBoard())){
+            //         gameData.setWinner(gameData.getTurn());
+            //         gameData.setStatus("win");
+            //     }
+            //     if(checkDraw()){
+            //         gameData.setStatus("draw");
+            //     }
+            //     nextTurn();
+            //     System.out.println("GameData updated from client: " + gameData.toString());
+                
+            // }
             default -> {
                 // Ignora altres tipus
             }
@@ -451,8 +474,8 @@ public class Main extends WebSocketServer {
         ticker.scheduleAtFixedRate(() -> {
             try {
                 // Opcional: si no hi ha clients, evita enviar
-                if (!clients.currentNames().isEmpty()) {
-                    System.out.println("testticket");
+                if (!clientsData.isEmpty()) {
+                    //System.out.println("testticket");
                     //sendClientsMatch();
                     broadcastStatus();
 

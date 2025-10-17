@@ -250,6 +250,7 @@ public class CtrlPlay implements Initializable {
         //System.out.println("Posició: "+realy+" , "+realx + " Peça: "+piece);
         
 
+
         JSONObject msg = new JSONObject();
         msg.put("type", "clientAddPiece");
         msg.put("value", new JSONObject()
@@ -395,7 +396,7 @@ public class CtrlPlay implements Initializable {
                 
                 List<List<String>> board = Main.gameData.getBoard();
                 //gc.strokeRect(x, y, cellSize, cellSize);
-                gc.setFill(Color.GREEN);
+                gc.setFill(Color.WHITESMOKE);
                 if(board.get(row).get(col).equals("Y")){
                     gc.setFill(Color.YELLOW);
                 }
@@ -439,9 +440,6 @@ public class CtrlPlay implements Initializable {
         gc.setStroke(Color.BLACK);
         gc.strokeOval(x, y, width, height);
 
-        // Opcionalment, afegir text (per exemple, l'objectId)
-        gc.setFill(Color.BLACK);
-        gc.fillText(obj.id, x + 5, y + 15);
     }
 
     public Color getColor(String colorName) {
