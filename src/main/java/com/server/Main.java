@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import com.client.GlowPieces;
 import com.shared.ClientData;
 import com.shared.GameData;
 import com.shared.GameObject;
@@ -77,7 +78,7 @@ public class Main extends WebSocketServer {
     /** Mapa d’estat per client (source of truth del servidor). Clau = name/id. */
     private final Map<String, ClientData> clientsData = new HashMap<>();
 
-
+    private final GlowPieces glowPieces = new GlowPieces();
 
     /** Mapa d'objectes seleccionables compartits. */
     private final Map<String, GameObject> gameObjects = new HashMap<>();
@@ -566,6 +567,9 @@ public class Main extends WebSocketServer {
             
             // Contamos la pieza central como 1
             int count = 1;
+            glowPieces.addPiece(List.of(r,c));
+
+            
 
             // 1. Contar en la dirección POSITIVA (ej: hacia la derecha, hacia abajo)
             count += countDirection(r, c, dr, dc, player, board);
@@ -579,7 +583,7 @@ public class Main extends WebSocketServer {
                 return true;
             }
         }
-
+        glowPieces.clearPieces();
         return false;
     }
 
@@ -605,7 +609,9 @@ public class Main extends WebSocketServer {
             // Usamos .trim().equals() para ignorar los espacios si es necesario
             if (board.get(currentRow).get(currentCol).trim().equals(player.trim())) {
                 count++;
+                glowPieces.addPiece(List.of(currentRow,currentCol));
             } else {
+                glowPieces.clearPieces();
                 break; // Se rompe la secuencia
             }
         }

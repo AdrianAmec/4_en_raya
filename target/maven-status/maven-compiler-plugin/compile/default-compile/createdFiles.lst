@@ -16,6 +16,7 @@ com\server\ClientRegistry.class
 com\client\UtilsViews.class
 com\client\ControllerListItem.class
 com\client\ItemTabla.class
+com\client\GlowPieces.class
 com\shared\ClientData.class
 com\client\PlayTimer.class
 com\client\CtrlMatch$1.class

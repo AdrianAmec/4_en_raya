@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -17,6 +18,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.effect.Glow;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
@@ -42,6 +44,8 @@ public class CtrlPlay implements Initializable {
 
     private GameObject selectedObject = null;
     private GameObject dummyAnimacion = null;
+
+    private GlowPieces glowPieces = new GlowPieces();
     
 
 
@@ -361,6 +365,10 @@ public class CtrlPlay implements Initializable {
             gc.setFill(getColor(clientData.color)); 
             gc.fillOval(clientData.mouseX - 5, clientData.mouseY - 5, 10, 10);
         }
+
+
+        //drawWinningPieces();
+
         // Draw FPS if needed
         if (showFPS) { animationTimer.drawFPS(gc); }   
     }
@@ -380,6 +388,32 @@ public class CtrlPlay implements Initializable {
                
     }
 
+    
+    public void drawWinningPieces(){
+        if(Main.gameData.getStatus().equals("win")){
+            for (List<Integer> pieces : glowPieces.getPieces()) {
+                double x = grid.getCol(pieces.get(0))-(grid.getCellSize()*0.5);
+                double y = grid.getRow(pieces.get(1))-(grid.getCellSize()*0.5);
+                String role = glowPieces.getRole();
+                Color color;
+                double size = grid.getCellSize()*1.5;
+
+
+                if (role.equals("Y")){
+                    color = Color.YELLOW;
+                }else{
+                    color = Color.RED;
+                }
+                Color alpha = new Color(color.getRed(), color.getGreen(), color.getBlue(),glowPieces.getGlow() );
+                gc.setFill(alpha);
+                gc.fillOval(x,y, size,size);
+                gc.strokeOval(x, y, size,size);
+
+
+            }
+        }
+
+    }
 
     public void drawGrid() {
         gc.setFill(Color.BLUE);
@@ -420,6 +454,7 @@ public class CtrlPlay implements Initializable {
 
         // Seleccionar un color basat en l'objectId
         Color color;
+        
         switch (obj.id.toLowerCase()) {
             case "r_00":
                 color = Color.RED;
@@ -498,6 +533,14 @@ public class CtrlPlay implements Initializable {
         }
     }
 
+    public boolean isWin(){
+        if(Main.gameData.getStatus().equals("win")){
+            startWinningAnimation();
+            return true;
+        }
+        return false;
+    }
+
     public boolean isPlaying(){
         if(Main.gameData.getStatus().equals("playing")){
             return true;
@@ -572,6 +615,48 @@ public class CtrlPlay implements Initializable {
 
         animacion.submit(runAnimacion);
     }
+
+
+    public void startWinningAnimation(){
+
+        final boolean[] running = {true};
+        final double[] vel = {0.1};
+
+        ExecutorService animacion = Executors.newSingleThreadExecutor();
+
+        Runnable runAnimacion = () -> {      
+            
+            final int DELAY = 5;
+            
+            final double[] actGlow = {glowPieces.getGlow()};
+            while(running[0]){
+
+                try {
+                    if(actGlow[0]+vel[0]>1 || actGlow[0]+vel[0] <0){
+                    vel[0]*=-1;
+                    }
+                    actGlow[0] +=vel[0];
+
+                    SwingUtilities.invokeLater(() -> {
+                        glowPieces.setGlow(actGlow[0]);
+                    });
+
+                    Thread.sleep(DELAY);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    Thread.currentThread().interrupt();
+                    running[0]=false;
+                    break;
+                } 
+            }
+            animacion.shutdown();
+
+        };
+
+        animacion.submit(runAnimacion);
+        
+    }
+
 
     
 
