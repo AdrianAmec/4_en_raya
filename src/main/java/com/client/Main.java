@@ -31,6 +31,7 @@ public class Main extends Application {
     public static List<GameObject> objects;
     public static GameData gameData= new GameData();
     public static GlowPieces glowPieces = new GlowPieces();
+    public static boolean isGlow = false;
 
     public static CtrlConfig ctrlConfig;
     public static CtrlWait ctrlWait;
@@ -163,12 +164,15 @@ public class Main extends Application {
                 
                 if(gameData.getStatus().equals("win")){
                     ctrlPlay.turno.setText("");
+                    isGlow=true;
                     if(!Main.clientName.equals(gameData.getTurn())){
                         ctrlPlay.title.setText("Ganaste la partida!");
 
                     }else{
                     ctrlPlay.title.setText( gameData.getWinner()+" gano la partida!");
                     }
+
+
                     break;
                 }
                 if(gameData.getStatus().equals("draw")){
@@ -187,6 +191,11 @@ public class Main extends Application {
                 break;
             
             case "countdown":
+                isGlow=false;    
+
+                ctrlWait.buttonExit.setVisible(false);
+                ctrlWait.buttonExit.setDisable(true);
+                
                 int value = msgObj.getInt("value");
                 String txt = String.valueOf(value);
                 if (value == 0) {
@@ -238,9 +247,13 @@ public class Main extends Application {
             case "serverGlowPieces":
                 JSONObject gpjson = msgObj.getJSONObject("value");
                 glowPieces.setFromJsonObject(gpjson.getJSONObject("glowPieces"));
-                ctrlPlay.startWinningAnimation(); 
+                 
                 ctrlPlay.buttonExit.setVisible(true);
                 ctrlPlay.buttonExit.setDisable(false);
+                
+                Main.isGlow=true;
+                ctrlPlay.startWinningAnimation();
+
                 System.out.println("BOTON AGREGADO!!!!");
                 break;
         }

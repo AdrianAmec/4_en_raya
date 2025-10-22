@@ -617,7 +617,7 @@ public class CtrlPlay implements Initializable {
 
     public void startWinningAnimation(){
 
-        final boolean[] running = {true};
+        
         final double[] vel = {0.02};
 
         ExecutorService animacion = Executors.newSingleThreadExecutor();
@@ -627,9 +627,10 @@ public class CtrlPlay implements Initializable {
             final int DELAY = 10;
             
             final double[] actGlow = {Main.glowPieces.getGlow()};
-            while(running[0]){
-
+            while(Main.isGlow){
+                
                 try {
+                    
                     if(actGlow[0]+vel[0]>1 || actGlow[0]+vel[0] <0){
                     vel[0]*=-1;
                     }
@@ -643,7 +644,7 @@ public class CtrlPlay implements Initializable {
                 } catch (Exception e) {
                     // TODO: handle exception
                     Thread.currentThread().interrupt();
-                    running[0]=false;
+                    Main.isGlow=false;
                     break;
                 } 
             }

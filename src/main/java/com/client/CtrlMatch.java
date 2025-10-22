@@ -94,6 +94,11 @@ public class CtrlMatch implements Initializable{
 
                             //enviamos al cliente a esperar al rival
                             UtilsViews.setViewAnimating("ViewWait");
+                            
+                            //habilitamos los botones de volver y cambiamos textos
+                            Main.ctrlWait.buttonExit.setVisible(true);
+                            Main.ctrlWait.buttonExit.setDisable(false);
+                            
                             Main.ctrlWait.txtTitle.setText("Esperando Oponente...");
                             Main.ctrlWait.txtPlayer0.setText(Main.clientName);
 
