@@ -14,10 +14,12 @@ import javax.swing.SwingUtilities;
 
 import org.json.JSONObject;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.effect.Glow;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
@@ -27,6 +29,9 @@ import com.shared.GameData;
 import com.shared.GameObject;
 
 public class CtrlPlay implements Initializable {
+
+    @FXML
+    public Button buttonExit;
 
     @FXML
     public javafx.scene.control.Label title,turno;
@@ -45,11 +50,10 @@ public class CtrlPlay implements Initializable {
     private GameObject selectedObject = null;
     private GameObject dummyAnimacion = null;
 
-    private GlowPieces glowPieces = new GlowPieces();
-    
-
-
-
+    @FXML
+    public void backLobby(){
+        UtilsViews.setViewAnimating("ViewMatch");
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -367,7 +371,7 @@ public class CtrlPlay implements Initializable {
         }
 
 
-        //drawWinningPieces();
+        drawWinningPieces();
 
         // Draw FPS if needed
         if (showFPS) { animationTimer.drawFPS(gc); }   
@@ -391,20 +395,20 @@ public class CtrlPlay implements Initializable {
     
     public void drawWinningPieces(){
         if(Main.gameData.getStatus().equals("win")){
-            for (List<Integer> pieces : glowPieces.getPieces()) {
-                double x = grid.getCol(pieces.get(0))-(grid.getCellSize()*0.5);
-                double y = grid.getRow(pieces.get(1))-(grid.getCellSize()*0.5);
-                String role = glowPieces.getRole();
+            for (List<Integer> pieces : Main.glowPieces.getPieces()) {
+                double x = grid.getCellX(pieces.get(1));
+                double y = grid.getCellY(pieces.get(0));
+                String role = Main.glowPieces.getRole();
                 Color color;
-                double size = grid.getCellSize()*1.5;
+                double size = grid.getCellSize()-5;
 
 
                 if (role.equals("Y")){
-                    color = Color.YELLOW;
+                    color = Color.ORANGE;
                 }else{
-                    color = Color.RED;
+                    color = Color.PURPLE;
                 }
-                Color alpha = new Color(color.getRed(), color.getGreen(), color.getBlue(),glowPieces.getGlow() );
+                Color alpha = new Color(color.getRed(), color.getGreen(), color.getBlue(),Main.glowPieces.getGlow() );
                 gc.setFill(alpha);
                 gc.fillOval(x,y, size,size);
                 gc.strokeOval(x, y, size,size);
@@ -533,13 +537,7 @@ public class CtrlPlay implements Initializable {
         }
     }
 
-    public boolean isWin(){
-        if(Main.gameData.getStatus().equals("win")){
-            startWinningAnimation();
-            return true;
-        }
-        return false;
-    }
+   
 
     public boolean isPlaying(){
         if(Main.gameData.getStatus().equals("playing")){
@@ -620,15 +618,15 @@ public class CtrlPlay implements Initializable {
     public void startWinningAnimation(){
 
         final boolean[] running = {true};
-        final double[] vel = {0.1};
+        final double[] vel = {0.02};
 
         ExecutorService animacion = Executors.newSingleThreadExecutor();
 
         Runnable runAnimacion = () -> {      
             
-            final int DELAY = 5;
+            final int DELAY = 10;
             
-            final double[] actGlow = {glowPieces.getGlow()};
+            final double[] actGlow = {Main.glowPieces.getGlow()};
             while(running[0]){
 
                 try {
@@ -636,9 +634,9 @@ public class CtrlPlay implements Initializable {
                     vel[0]*=-1;
                     }
                     actGlow[0] +=vel[0];
-
+                    
                     SwingUtilities.invokeLater(() -> {
-                        glowPieces.setGlow(actGlow[0]);
+                        Main.glowPieces.setGlow(actGlow[0]);
                     });
 
                     Thread.sleep(DELAY);
@@ -654,7 +652,7 @@ public class CtrlPlay implements Initializable {
         };
 
         animacion.submit(runAnimacion);
-        
+        System.out.println("testContinuidad");
     }
 
 

@@ -14,6 +14,7 @@ public class ControllerListItem{
 
     private String from;
     private String to;
+    private int inviID;
     
 
     public String getTitle(){
@@ -33,10 +34,11 @@ public class ControllerListItem{
     // }
 
 
-    public void setDatos(String from, String to){
+    public void setDatos(String from, String to,int inviID){
         this.title.setText(from +" te invito a jugar ");
         this.from=from;
         this.to=to;
+        this.inviID=inviID;
     }
 
     @FXML
@@ -47,11 +49,13 @@ public class ControllerListItem{
         .put("to",to);
 
         Main.wsClient.safeSend(msg.toString());
+        Main.ctrlMatch.removeInvi(inviID);
     }
 
     @FXML
     public void actionRechazar(ActionEvent event){
         System.out.println("Rechazo");
+        //Main.ctrlMatch.removeInvi(inviID);
     }
 
 

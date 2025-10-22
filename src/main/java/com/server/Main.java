@@ -22,10 +22,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import com.client.GlowPieces;
 import com.shared.ClientData;
 import com.shared.GameData;
 import com.shared.GameObject;
+import com.shared.GlowPieces;
 
 /**
  * Servidor WebSocket que manté l'estat complet dels clients i objectes seleccionables.
@@ -193,6 +193,20 @@ public class Main extends WebSocketServer {
         }
     }
 
+
+    private void broadcastGlowPieces (JSONObject msg){
+
+            JSONObject rst = msg("serverGlowPieces")
+                .put(K_VALUE, msg);
+
+            for (Map.Entry<String, ClientData> e : clientsData.entrySet()) {
+                String name = e.getKey();
+                WebSocket conn = clients.socketByName(name);
+                rst.put(K_CLIENT_NAME, name);
+                sendSafe(conn, rst.toString());
+            }
+        }
+
     //envia los nombres de los jugadores conectados
     private void sendClientsMatch(){
         JSONObject rst = msg("serverClientsMatch")
@@ -201,7 +215,7 @@ public class Main extends WebSocketServer {
     }
 
 
-    //envia la orden de empezar la animacion de jugada en los clientes
+    //envia la orden de empezar la animacion de caida de jugada en los clientes
     private void broadcastAnimation (JSONObject msg){
 
         JSONObject rst = msg("serverAnimation")
@@ -351,6 +365,12 @@ public class Main extends WebSocketServer {
                 if(checkWin(row, col,gameData.getBoard())){
                     gameData.setWinner(gameData.getTurn());
                     gameData.setStatus("win");
+
+                    JSONObject msg = new JSONObject()
+                    .put("glowPieces",glowPieces.toJsonObject());
+
+                    broadcastGlowPieces(msg);
+
                 }
                 if(checkDraw()){
                     gameData.setStatus("draw");
@@ -544,7 +564,7 @@ public class Main extends WebSocketServer {
     public boolean checkWin(int r, int c, List<List<String>> board) {
         
         String player = board.get(r).get(c); // Pieza a buscar
-        
+        glowPieces.setRole(player);
         if (player.trim().isEmpty()) {
             return false; // Nunca debe pasar si llamas esto después de un movimiento
         }
@@ -576,14 +596,18 @@ public class Main extends WebSocketServer {
 
             // 2. Contar en la dirección OPUESTA/NEGATIVA (ej: hacia la izquierda, hacia arriba)
             // Usamos -dr y -dc para la dirección opuesta
+            if(count>=4){
             count += countDirection(r, c, -dr, -dc, player, board);
+            }
+            
 
-            // Si la cuenta total (incluyendo la pieza central) es 4 o más, ganamos.
+            // Si la cuenta total (incluyendo la pieza central) es 4 o más.
             if (count >= 4) {
                 return true;
             }
+            glowPieces.clearPieces();
         }
-        glowPieces.clearPieces();
+        
         return false;
     }
 
@@ -611,7 +635,7 @@ public class Main extends WebSocketServer {
                 count++;
                 glowPieces.addPiece(List.of(currentRow,currentCol));
             } else {
-                glowPieces.clearPieces();
+                
                 break; // Se rompe la secuencia
             }
         }

@@ -40,6 +40,7 @@ public class CtrlMatch implements Initializable{
 
     private ObservableList<ItemTabla> datosTabla;
 
+    private int inviID = 0;
 
     // public void setClient(String client){
     //     this.client=client;
@@ -52,6 +53,16 @@ public class CtrlMatch implements Initializable{
     // public CtrlMatch(){
     //     client="";
     // }
+    public void removeInvi(int inviID){
+        for (int i = 0; i < inviPanel.getChildren().size(); i++) {
+            Parent invi = (Parent)inviPanel.getChildren().get(i);
+            Object userData = invi.getUserData();
+            if (userData instanceof Integer && ((Integer) userData).intValue() == inviID) {
+                inviPanel.getChildren().remove(i);
+                return;
+            }
+        }
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -70,8 +81,8 @@ public class CtrlMatch implements Initializable{
                     private final Button btn = new Button("Invitar");
                     {
                         btn.setOnAction(event -> {
-                            btn.setText("enviado...");
-                            btn.setDisable(true);
+                            // btn.setText("enviado...");
+                            // btn.setDisable(true);
                             ItemTabla data = getTableView().getItems().get(getIndex());
 
                             JSONObject msg = new JSONObject()
@@ -151,9 +162,15 @@ public class CtrlMatch implements Initializable{
             //System.out.println("test2");
             ControllerListItem itemController = loader.getController();
             //System.out.println("test3");
-            itemController.setDatos(from, to);
-            
+            itemController.setDatos(from, to,inviID);
+            // store the inviID on the node so removeInvi can find it without needing the controller reference
+            itemTemplate.setUserData(Integer.valueOf(inviID));
             inviPanel.getChildren().add(itemTemplate);
+            
+            
+            inviID++;
+            
+            
             //System.out.println("invitacion subida! en teoria");
 
             
@@ -163,5 +180,6 @@ public class CtrlMatch implements Initializable{
         }
         
     }
+        
 }
 

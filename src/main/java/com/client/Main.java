@@ -10,12 +10,14 @@ import org.json.JSONObject;
 import com.shared.ClientData;
 import com.shared.GameData;
 import com.shared.GameObject;
+import com.shared.GlowPieces;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
 import javafx.scene.paint.Color;
 import javafx.scene.Scene;
+import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -28,11 +30,13 @@ public class Main extends Application {
     public static List<ClientData> clients;
     public static List<GameObject> objects;
     public static GameData gameData= new GameData();
+    public static GlowPieces glowPieces = new GlowPieces();
 
     public static CtrlConfig ctrlConfig;
     public static CtrlWait ctrlWait;
     public static CtrlPlay ctrlPlay;
     public static CtrlMatch ctrlMatch;
+    
 
     public static void main(String[] args) {
 
@@ -228,6 +232,16 @@ public class Main extends Application {
 
             case "startGame":
                 UtilsViews.setView("ViewWait");
+                ctrlPlay.buttonExit.setVisible(false);
+                ctrlPlay.buttonExit.setDisable(true);
+                break;
+            case "serverGlowPieces":
+                JSONObject gpjson = msgObj.getJSONObject("value");
+                glowPieces.setFromJsonObject(gpjson.getJSONObject("glowPieces"));
+                ctrlPlay.startWinningAnimation(); 
+                ctrlPlay.buttonExit.setVisible(true);
+                ctrlPlay.buttonExit.setDisable(false);
+                System.out.println("BOTON AGREGADO!!!!");
                 break;
         }
     }
