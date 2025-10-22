@@ -1,10 +1,4 @@
 #!/bin/bash
-export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-export PATH=$JAVA_HOME/bin:/usr/share/maven/bin:$PATH
-# Forzar definición de JAVA_HOME si no está definida
-if [[ -z "$JAVA_HOME" ]]; then
-    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-fi
 export PATH=$JAVA_HOME/bin:$PATH
 
 get_latest_version() {

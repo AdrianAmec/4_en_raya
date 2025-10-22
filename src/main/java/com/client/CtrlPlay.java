@@ -363,7 +363,7 @@ public class CtrlPlay implements Initializable {
             }
         }
 
-        
+        drawWinningPieces();
         // Draw mouse circles
         for (ClientData clientData : Main.clients) {
             gc.setFill(getColor(clientData.color)); 
@@ -371,7 +371,7 @@ public class CtrlPlay implements Initializable {
         }
 
 
-        drawWinningPieces();
+        
 
         // Draw FPS if needed
         if (showFPS) { animationTimer.drawFPS(gc); }   
