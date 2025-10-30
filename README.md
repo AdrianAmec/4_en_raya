@@ -1,4 +1,4 @@
-# 4 en Raya (Connect Four)
+# 4 en Raya
 
 Implementación del juego **4 en Raya** utilizando sockets para una arquitectura Cliente-Servidor.
 
