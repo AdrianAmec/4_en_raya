@@ -53,6 +53,7 @@ public class CtrlPlay implements Initializable {
     @FXML
     public void backLobby(){
         UtilsViews.setViewAnimating("ViewMatch");
+        Main.isGlow=false;
     }
 
     @Override
@@ -178,69 +179,72 @@ public class CtrlPlay implements Initializable {
     }
 
     private void onMouseReleased(MouseEvent event) {
+
         if (!isPlaying()){return;}
-        if (selectedObject != null) {
-            System.out.println("nameClient = "+Main.clientName+"  Turno de = "+Main.gameData.getTurn() );
-            
+        
+        if (selectedObject == null) {return;}
 
-            String role = Main.clients.stream()
-            .filter(c -> c.name.equals(Main.clientName))
-            .map(c -> c.role)
-            .findFirst()
-            .orElse("");
+        System.out.println("nameClient = "+Main.clientName+"  Turno de = "+Main.gameData.getTurn() );
+        
 
-            System.out.println("Server Turno: "+Main.gameData.getTurn()+"Soy "+Main.clientName+"\n ----Role ---"+selectedObject.role+" == es "+ role);
-            if(!Main.gameData.getTurn().equals(Main.clientName)||!selectedObject.role.equals(role)){
-                snapObjectLeftTop(selectedObject);
+        String role = Main.clients.stream()
+        .filter(c -> c.name.equals(Main.clientName))
+        .map(c -> c.role)
+        .findFirst()
+        .orElse("");
 
-
-                JSONObject msg = new JSONObject();
-                msg.put("type", "clientObjectMoving");
-                msg.put("value", selectedObject.toJSON());
-                if (Main.wsClient != null) Main.wsClient.safeSend(msg.toString());
-
-
-                mouseDragging = false;
-                selectedObject = null;
-                
-                return;
-            }
-
-            double objX = event.getX() - mouseOffsetX; // left tip X
-            double objY = event.getY() - mouseOffsetY; // left tip Y
-
-            // build object with dragged position (size stays in col/row)
-            GameObject selectedObject2 = new GameObject(
-                selectedObject.id,
-                (int) objX,
-                (int) objY,
-
-                selectedObject.role
-            );
-            
-            
-            if(grid.getCol(objX)!=-1 && grid.getRow(objY)!=-1){
-                System.out.println("Peça col·locada: "+selectedObject2.role);
-                insertPieceInBoard(selectedObject,event.getX(), event.getY());
-            }
-            
-
-
-
-    //        snap by left-top corner to underlying cell
-            
+        System.out.println("Server Turno: "+Main.gameData.getTurn()+"Soy "+Main.clientName+"\n ----Role ---"+selectedObject.role+" == es "+ role);
+        if(!Main.gameData.getTurn().equals(Main.clientName)||!selectedObject.role.equals(role)){
             snapObjectLeftTop(selectedObject);
-            
+
 
             JSONObject msg = new JSONObject();
             msg.put("type", "clientObjectMoving");
             msg.put("value", selectedObject.toJSON());
             if (Main.wsClient != null) Main.wsClient.safeSend(msg.toString());
 
+
             mouseDragging = false;
             selectedObject = null;
+            
+            return;
         }
+
+        double objX = event.getX() - mouseOffsetX; // left tip X
+        double objY = event.getY() - mouseOffsetY; // left tip Y
+
+        // build object with dragged position (size stays in col/row)
+        GameObject selectedObject2 = new GameObject(
+            selectedObject.id,
+            (int) objX,
+            (int) objY,
+
+            selectedObject.role
+        );
+        
+        
+        if(grid.getCol(objX)!=-1 && grid.getRow(objY)!=-1){
+            System.out.println("Peça col·locada: "+selectedObject2.role);
+            insertPieceInBoard(selectedObject,event.getX(), event.getY());
+        }
+        
+
+
+
+        //        snap by left-top corner to underlying cell
+        
+        snapObjectLeftTop(selectedObject);
+        
+
+        JSONObject msg = new JSONObject();
+        msg.put("type", "clientObjectMoving");
+        msg.put("value", selectedObject.toJSON());
+        if (Main.wsClient != null) Main.wsClient.safeSend(msg.toString());
+
+        mouseDragging = false;
+        selectedObject = null;
     }
+    
 
     private void insertPieceInBoard(GameObject selectedObject2, double x, double y) {
         String piece = selectedObject2.role;
@@ -282,7 +286,7 @@ public class CtrlPlay implements Initializable {
     }
 
 
-    // Snap piece so its left-top corner sits exactly on the grid cell under its left tip.
+    // Snap piece .
     private void snapObjectLeftTop(GameObject obj) {
         
 

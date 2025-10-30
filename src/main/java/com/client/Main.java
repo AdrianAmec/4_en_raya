@@ -221,7 +221,7 @@ public class Main extends Application {
                 break;
 
             case "serverClientsMatch":
-                System.out.println("test3");
+                System.out.println("test33333");
                 ctrlMatch.setItemsFromJSONArray(msgObj.getJSONArray("value"));
                 //ctrlMatch.setClient(msgObj.getString("clientName"));
 
