@@ -21,7 +21,10 @@ Este proyecto está construido con Java y gestionado con **Maven**.
 Es necesario tener instalado Maven para poder compilar este proyecto, para instalarlo ejecute el siguiente codigo:
 
 ```bash
-mvn clean install
+sudo apt update
+```
+```bash
+sudo apt install maven
 ```
 ---
 ##  Puesta en Marcha
