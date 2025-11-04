@@ -29,4 +29,27 @@ sudo apt install maven
 ---
 ##  Puesta en Marcha
 
-Para compilar y ejecutar el proyecto, se han incluido los scripts `.\run.ps1 com.server.Main` para iniciar el servidor y `.\run.ps1 com.client.Main` para iniciar como cliente.
+**Iniciar Servidor**
+
+Para crear un servidor en local ejecuta el siguiente comando para hostear la partida en local
+
+* **Windows** `.\run.ps1 com.server.Main`
+* **Linux** `.\run.sh com.server.Main`
+
+
+**Iniciar Clientes (jugadores)**
+
+* **Windows**  `.\run.ps1 com.client.Main`
+* **Linux**  `.\run.sh com.client.Main`
+
+
+
+**Conectarse al localhost**
+
+* Seleciona el boton `Local` (*Protocolo: `ws`, Server IP: `localhost`, Puerto: `3000`*) y `Connect`
+
+
+
+**Para conecectarse a partidas en linea (proxmox)**
+
+* Selecciona el boton `Proxmox` (*Protocolo: `wss`, Server IP: `aescalantecarbajo.ieti.site`, Puerto: `443`*) y `Connect`
