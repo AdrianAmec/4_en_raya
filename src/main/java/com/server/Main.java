@@ -596,7 +596,7 @@ public class Main extends WebSocketServer {
 
             // 2. Contar en la dirección OPUESTA/NEGATIVA (ej: hacia la izquierda, hacia arriba)
             // Usamos -dr y -dc para la dirección opuesta
-            if(count>=4){
+            if(count<4){
             count += countDirection(r, c, -dr, -dc, player, board);
             }
             
